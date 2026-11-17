@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title id="page-title">Survey Kinerja - PT DMS</title>
+<style>
+:root{--ink:#16263d;--muted:#5d6b7e;--line:#d9e0ea;--bg:#f2f5f9;--card:#fff;--brand:#1d4e89;--star:#e8a200;--err:#b3261e;--ok:#1b7a4b}
+@media (prefers-color-scheme:dark){:root{--ink:#e8edf4;--muted:#9aa8bb;--line:#2b3a50;--bg:#0f1a2a;--card:#162235;--brand:#6aa6e8;--star:#f0b429;--err:#ff8a80;--ok:#6fd3a0}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1.4rem;margin:8px 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px;margin-bottom:14px}
+label.f{display:block;font-weight:600;margin-bottom:6px}
+select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{min-height:90px;resize:vertical}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.target-box{margin-top:12px;padding:10px 12px;border-left:4px solid var(--brand);background:var(--bg);border-radius:4px}
+.target-box small{color:var(--muted);display:block}
+.target-box b{font-size:1.1rem}
+.q{padding:14px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0;padding-top:0}
+.q p{margin:0 0 10px;font-weight:500}
+.yn{display:flex;gap:10px}
+.yn label{flex:1;text-align:center;border:1px solid var(--line);border-radius:8px;padding:10px;cursor:pointer;font-weight:600}
+.yn input{position:absolute;opacity:0}
+.yn label:has(input:checked){background:var(--brand);color:var(--card);border-color:var(--brand)}
+.yn label:has(input:focus-visible){outline:3px solid var(--brand);outline-offset:2px}
+.stars{display:flex;gap:4px}
+.stars button{background:none;border:0;font-size:2.4rem;line-height:1;cursor:pointer;color:var(--line);padding:2px}
+.stars button.on{color:var(--star)}
+.hint{color:var(--muted);font-size:.9rem;margin-top:4px}
+.err{color:var(--err);font-weight:600;min-height:1.4em;margin:4px 0 10px}
+.btn{width:100%;font:inherit;font-weight:700;background:var(--brand);color:var(--card);border:0;border-radius:8px;padding:14px;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.done{text-align:center;padding:36px 18px}
+.done h2{color:var(--ok);margin:0 0 6px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<h1 id="survey-title">Survey</h1>
+<p class="sub" id="survey-subtitle"></p>
+
+<div id="form-wrap">
+  <!-- Pilihan Partisipan / Responden -->
+  <div class="card">
+    <label class="f" for="respondent" id="lbl-respondent">Nama Responden</label>
+    <select id="respondent"><option value="">Pilih nama Anda</option></select>
+    <div class="target-box" id="target-box" hidden>
+      <small id="lbl-target">Yang dinilai</small>
+      <b id="target-name"></b>
+    </div>
+  </div>
+
+  <!-- Kontainer Pertanyaan Dinamis -->
+  <div class="card" id="qs"></div>
+
+  <!-- Penilaian Bintang & Keterangan Opsional -->
+  <div class="card" id="rating-card">
+    <div id="stars-wrap">
+      <label class="f" id="lbl-rating">Penilaian keseluruhan</label>
+      <div class="stars" id="stars" role="radiogroup" aria-label="Penilaian bintang"></div>
+      <div class="hint" id="star-hint">Ketuk bintang untuk menilai (1 = sangat kurang, 5 = sangat baik)</div>
+    </div>
+    
+    <div id="notes-wrap">
+      <label class="f" for="note" id="lbl-note" style="margin-top:16px">
+        <span id="txt-note-label">Keterangan</span> 
+        <span style="font-weight:400;color:var(--muted)" id="txt-note-opt">(opsional)</span>
+      </label>
+      <textarea id="note" maxlength="500" placeholder="Tulis masukan atau catatan bila ada"></textarea>
+    </div>
+  </div>
+
+  <div class="err" id="err" role="alert"></div>
+  <button class="btn" id="send">Kirim survey</button>
+</div>
+
+<!-- Layar Selesai -->
+<div class="card done" id="done" hidden>
+  <h2 id="done-title">Survey terkirim</h2>
+  <p id="done-desc">Terima kasih. Jawaban Anda sudah tercatat.</p>
+</div>
+</main>
+
+<!-- Muat file konfigurasi -->
+<script src="config.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const cfg = (typeof SURVEY_CONFIG !== "undefined") ? SURVEY_CONFIG : {
+  title: "Survey Kinerja Operation Lead",
+  subtitle: "Khusus Kepala Cabang PT Duta Mitra Solusindo.",
+  endpoint: typeof ENDPOINT !== "undefined" ? ENDPOINT : "",
+  branches: typeof BRANCHES !== "undefined" ? BRANCHES : [],
+  questions: typeof QUESTIONS !== "undefined" ? QUESTIONS : [],
+  respondentLabel: "Nama Kepala Cabang",
+  targetLabel: "Operation Lead yang dinilai",
+  enableRating: true,
+  enableNotes: true
+};
+
+let rating = 0;
+let locked = false;
+
+function fail(m) {
+  $("err").textContent = m;
+}
+
+// 1. Terapkan Identitas & Label Dinamis
+document.title = cfg.title ? (cfg.title + " - " + (cfg.company || "Survey")) : "Survey";
+$("page-title").textContent = document.title;
+$("survey-title").textContent = cfg.title || "Survey";
+$("survey-subtitle").textContent = cfg.subtitle || "";
+$("lbl-respondent").textContent = cfg.respondentLabel || "Nama Responden";
+$("lbl-target").textContent = cfg.targetLabel || "Yang dinilai";
+
+if (cfg.successTitle) $("done-title").textContent = cfg.successTitle;
+if (cfg.successMessage) $("done-desc").textContent = cfg.successMessage;
+
+// Opsi rating & notes
+if (cfg.enableRating === false) {
+  $("stars-wrap").hidden = true;
+} else {
+  if (cfg.ratingLabel) $("lbl-rating").textContent = cfg.ratingLabel;
+  if (cfg.ratingHint) $("star-hint").textContent = cfg.ratingHint;
+}
+
+if (cfg.enableNotes === false) {
+  $("notes-wrap").hidden = true;
+} else {
+  if (cfg.notesLabel) $("txt-note-label").textContent = cfg.notesLabel;
+  if (cfg.notesOptionalText) $("txt-note-opt").textContent = cfg.notesOptionalText;
+  if (cfg.notesPlaceholder) $("note").placeholder = cfg.notesPlaceholder;
+  if (cfg.notesMaxLength) $("note").maxLength = cfg.notesMaxLength;
+}
+
+if (cfg.enableRating === false && cfg.enableNotes === false) {
+  $("rating-card").hidden = true;
+}
+
+// 2. Inisialisasi Dropdown Responden
+const branches = cfg.branches || [];
+const respondentSelect = $("respondent");
+respondentSelect.innerHTML = '<option value="">' + (cfg.respondentPlaceholder || "Pilih nama Anda") + '</option>';
+
+branches.forEach((b, i) => {
+  const o = document.createElement("option");
+  o.value = i;
+  o.textContent = b.kepala + (b.cabang ? " (" + b.cabang + ")" : "");
+  respondentSelect.appendChild(o);
+});
+
+// Event saat nama dipilih -> Cek apakah sudah pernah mengisi
+respondentSelect.onchange = async () => {
+  const b = branches[respondentSelect.value];
+  const targetName = b ? (b.target || b.ol || "") : "";
+  
+  if (b && cfg.targetLabel && targetName) {
+    $("target-box").hidden = false;
+    $("target-name").textContent = targetName;
+  } else {
+    $("target-box").hidden = true;
+  }
+
+  locked = false;
+  fail("");
+  $("send").disabled = false;
+  if (!b) return;
+
+  const endpoint = cfg.endpoint || cfg.ENDPOINT;
+  if (!endpoint || endpoint.includes("PASTE_URL_WEB_APP")) return;
+
+  try {
+    const key = encodeURIComponent((b.cabang || "") + "|" + b.kepala);
+    const sheet = encodeURIComponent(cfg.sheetName || "Jawaban");
+    const r = await fetch(endpoint + "?key=" + key + "&sheet=" + sheet);
+    const j = await r.json();
+    if (j.submitted && respondentSelect.value === String(branches.indexOf(b))) {
+      locked = true;
+      $("send").disabled = true;
+      fail("Survey untuk nama ini sudah terisi. Survey hanya bisa diisi satu kali.");
+    }
+  } catch (e) {
+    /* Pengecekan ganda final tetap dilakukan di server saat tombol kirim diklik */
+  }
+};
+
+// 3. Inisialisasi Pertanyaan Dinamis (Bisa 1, 2, 5, 10, dst)
+const questions = cfg.questions || [];
+const qsWrap = $("qs");
+qsWrap.innerHTML = "";
+
+questions.forEach((t, i) => {
+  const d = document.createElement("div");
+  d.className = "q";
+
+  const p = document.createElement("p");
+  p.textContent = (i + 1) + ". " + t;
+
+  const yn = document.createElement("div");
+  yn.className = "yn";
+
+  const lblYa = document.createElement("label");
+  const inputYa = document.createElement("input");
+  inputYa.type = "radio";
+  inputYa.name = "q" + i;
+  inputYa.value = "Ya";
+  lblYa.appendChild(inputYa);
+  lblYa.appendChild(document.createTextNode("Ya"));
+
+  const lblTidak = document.createElement("label");
+  const inputTidak = document.createElement("input");
+  inputTidak.type = "radio";
+  inputTidak.name = "q" + i;
+  inputTidak.value = "Tidak";
+  lblTidak.appendChild(inputTidak);
+  lblTidak.appendChild(document.createTextNode("Tidak"));
+
+  yn.appendChild(lblYa);
+  yn.appendChild(lblTidak);
+
+  d.appendChild(p);
+  d.appendChild(yn);
+  qsWrap.appendChild(d);
+});
+
+// 4. Inisialisasi Penilaian Bintang 1-5
+const labels = ["", "Sangat kurang", "Kurang", "Cukup", "Baik", "Sangat baik"];
+const starsWrap = $("stars");
+starsWrap.innerHTML = "";
+
+for (let n = 1; n <= 5; n++) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = "\u2605";
+  b.setAttribute("role", "radio");
+  b.setAttribute("aria-label", n + " bintang");
+  b.onclick = () => {
+    rating = n;
+    [...starsWrap.children].forEach((s, i) => s.classList.toggle("on", i < n));
+    $("star-hint").textContent = n + " bintang - " + labels[n];
+  };
+  starsWrap.appendChild(b);
+}
+
+// 5. Logika Pengiriman Form
+$("send").onclick = async () => {
+  if (locked) {
+    return fail("Survey untuk nama ini sudah terisi. Survey hanya bisa diisi satu kali.");
+  }
+
+  const b = branches[respondentSelect.value];
+  const ans = [];
+  for (let i = 0; i < questions.length; i++) {
+    const r = document.querySelector('input[name="q' + i + '"]:checked');
+    ans.push(r ? r.value : "");
+  }
+
+  if (!b) {
+    return fail("Silakan pilih " + (cfg.respondentLabel || "nama Anda") + " terlebih dahulu.");
+  }
+  if (ans.includes("")) {
+    return fail("Jawab seluruh " + questions.length + " pertanyaan dengan Ya atau Tidak.");
+  }
+  if (cfg.enableRating && !rating) {
+    return fail("Berikan penilaian bintang.");
+  }
+
+  const endpoint = cfg.endpoint || cfg.ENDPOINT;
+  if (!endpoint || endpoint.includes("PASTE_URL_WEB_APP")) {
+    return fail("ENDPOINT Google Apps Script belum dikonfigurasi di config.js.");
+  }
+
+  fail("");
+  $("send").disabled = true;
+  $("send").textContent = "Mengirim...";
+
+  const payload = {
+    sheetName: cfg.sheetName || "Jawaban",
+    respondentLabel: cfg.respondentLabel || "Penilai",
+    targetLabel: cfg.targetLabel || "Yang Dinilai",
+    cabang: b.cabang || "",
+    kepala: b.kepala || "",
+    target: b.target || b.ol || "",
+    questions: questions,
+    answers: ans,
+    bintang: cfg.enableRating ? rating : 0,
+    keterangan: cfg.enableNotes ? $("note").value.trim().substring(0, cfg.notesMaxLength || 500) : ""
+  };
+
+  try {
+    const r = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const j = await r.json();
+
+    if (j.status === "duplicate") {
+      fail("Survey untuk nama ini sudah terisi. Survey hanya bisa diisi satu kali.");
+      $("send").disabled = true;
+      $("send").textContent = "Kirim survey";
+      return;
+    }
+
+    if (j.status !== "ok") throw new Error("Gagal menyimpan respons");
+
+    $("form-wrap").hidden = true;
+    $("done").hidden = false;
+    window.scrollTo(0, 0);
+  } catch (e) {
+    fail("Gagal mengirim. Periksa koneksi internet lalu coba lagi.");
+    $("send").disabled = false;
+    $("send").textContent = "Kirim survey";
+  }
+};
+</script>
+</body>
+</html>
