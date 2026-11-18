@@ -6,7 +6,7 @@
 const SURVEY_CONFIG = {
   // 1. Identitas Survey
   title: "Survey Kinerja Operation Lead",
-  subtitle: "Khusus Kepala Cabang PT Adi Sarana Armada, Tbk.",
+  subtitle: "Khusus Kepala Cabang PT Adi Sarana Armada, Tbk. Mengisi hanya butuh sekitar 1 menit.",
   company: "PT Adi Sarana Armada, Tbk.",
 
   // 2. Nama Tab di Google Sheet (Memungkinkan 1 Google Spreadsheet untuk banyak jenis survey)
