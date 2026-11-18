@@ -151,7 +151,8 @@ respondentSelect.innerHTML = '<option value="">' + (cfg.respondentPlaceholder ||
 branches.forEach((b, i) => {
   const o = document.createElement("option");
   o.value = i;
-  o.textContent = b.kepala + (b.cabang ? " (" + b.cabang + ")" : "");
+  // Menampilkan hanya nama Kepala Cabang di dropdown (nama cabang tetap tersimpan di balik layar untuk report)
+  o.textContent = (cfg.showBranchInDropdown && b.cabang) ? (b.kepala + " (" + b.cabang + ")") : b.kepala;
   respondentSelect.appendChild(o);
 });
 

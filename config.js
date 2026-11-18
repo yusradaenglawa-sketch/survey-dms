@@ -15,6 +15,7 @@ const SURVEY_CONFIG = {
   // 3. Label Peran
   respondentLabel: "Nama Kepala Cabang",        // Label untuk orang yang mengisi survey
   respondentPlaceholder: "Pilih nama Anda",
+  showBranchInDropdown: false,                 // false = hanya tampilkan nama di dropdown (nama cabang tetap masuk report Sheet)
   targetLabel: "Operation Lead yang dinilai",  // Subjek yang dinilai (kosongkan "" jika survey umum/tanpa subjek)
 
   // 4. Daftar Pertanyaan (Bebas: bisa 1, 2, 3, 5, 10, atau berapapun)
