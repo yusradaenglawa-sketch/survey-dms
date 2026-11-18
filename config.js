@@ -47,7 +47,7 @@ const SURVEY_CONFIG = {
   // 9. Daftar Peserta & Subjek Penilaian
   branches: [
     { cabang: "JAKARTA 1", kepala: "DANI ANDRIANTO", target: "GILANG FITRIANSYAH" },
-    { cabang: "JAKARTA 1", kepala: "CRISTIAN SUHERMAN", target: "ADLIAN HANDRA" },
+    { cabang: "JAKARTA 1", kepala: "CHRISTIAN SUHERMAN", target: "ADLIAN HANDRA" },
     { cabang: "JAKARTA 2", kepala: "HENRY IKHSAN", target: "YUANDA" },
     { cabang: "JAKARTA 4", kepala: "HENDRA ATH", target: "RINO PARIPURNA" },
     { cabang: "BANDUNG", kepala: "CRISTOPER LEE", target: "IKHSAN FAJAR FEBRIYANTO" },
@@ -61,7 +61,7 @@ const SURVEY_CONFIG = {
     { cabang: "MAKASAR", kepala: "HENCE KOSASIH", target: "FINSA SATRIO" },
     { cabang: "MALANG", kepala: "MARDI PRASETYO", target: "KIKY RIZKY ANANDA" },
     { cabang: "SEMARANG", kepala: "ARIS PRIYANTO", target: "HIMAWAN RIZKI UTOMO" },
-    { cabang: "SURABAYA", kepala: "DIAH ELISABET KUSNAENI", target: "AH FIKRI KHOIRUR R" }
+    { cabang: "SURABAYA", kepala: "DIAH ELISABETH KUSNAENI", target: "AH FIKRI KHOIRUR R" }
   ]
 };
 
