@@ -48,6 +48,7 @@ const SURVEY_CONFIG = {
   branches: [
     { cabang: "JAKARTA 1", kepala: "DANI ANDRIANTO", target: "GILANG FITRIANSYAH" },
     { cabang: "JAKARTA 1", kepala: "CHRISTIAN SUHERMAN", target: "ADLIAN HANDRA" },
+    { cabang: "JAKARTA 1", kepala: "BOBY PRIATMANA", target: "GILANG FITRIANSYAH" },
     { cabang: "JAKARTA 2", kepala: "HENRY IKHSAN", target: "YUANDA" },
     { cabang: "JAKARTA 4", kepala: "HENDRA ATH", target: "RINO PARIPURNA" },
     { cabang: "BANDUNG", kepala: "CRISTOPER LEE", target: "IKHSAN FAJAR FEBRIYANTO" },
